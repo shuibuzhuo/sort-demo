@@ -1,13 +1,25 @@
+<!--
+ * @Author: zhuotuo
+ * @Date: 2023-09-06 15:57:21
+ * @LastEditors: zhuotuo
+ * @LastEditTime: 2023-09-11 14:51:32
+ * @Description: 
+-->
 <template>
   <div class="flex">
     <div class="wrapper">
       <ul id="list">
-        <li v-for="item in list" :key="item.id">{{ item.name }}</li>
+        <li class="origin" v-for="item in list" :key="item.id">{{ item.name }}</li>
       </ul>
     </div>
     <div class="wrapper">
       <ul id="preview">
-        <li class="preview-item" v-for="item in preview" :key="item.id">{{ item.name }}</li>
+        <li v-for="item in preview" :key="item.id">
+          <div v-if="item.children" id="group">
+            <div v-for="child in item.children" :key="child.id">{{ child.name }}</div>
+          </div>
+          <div v-else>{{ item.name }}</div>
+        </li>
       </ul>
     </div>
     <div class="ml-50">
@@ -23,10 +35,10 @@
 
 <script setup lang="ts">
 import Sortable from 'sortablejs'
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 
 const list = ref([
-  { name: 'John', id: 1 },
+  { name: 'John', id: 1, key: 'special' },
   { name: 'Joao', id: 2 },
   { name: 'Jean', id: 3 },
   { name: 'Gerard', id: 4 }
@@ -36,16 +48,38 @@ const preview = ref<any[]>([])
 function initSortable() {
   const listEl = document.getElementById('list')
   const previewEl = document.getElementById('preview')
+
   Sortable.create(listEl!, {
     group: { name: 'componentList', pull: 'clone', put: false },
     sort: false,
     onEnd: function (e) {
-      // 用下面这 4 行的话，可以更新 preview 数据，但是会出现两条数据到右边的容器
-      // 但不用下面这 4 行的话， preview 数据不会更新
-      // if (e.from !== e.to) {
-      //   const element = list.value[e.oldIndex!]
-      //   preview.value.splice(e.newIndex!, 0, element)
-      // }
+      console.log('e', e)
+      if (e.from !== e.to) {
+        const dragged = e.item
+        const element = list.value[e.oldIndex!]
+
+        if (e.to.id === 'group') {
+          preview.value[e.newIndex!].children.push(element)
+        } else {
+          if (element.key === 'special') {
+            preview.value.splice(e.newIndex!, 0, { ...element, children: [] })
+          } else {
+            preview.value.splice(e.newIndex!, 0, element)
+          }
+        }
+
+        nextTick(() => {
+          const group = document.querySelectorAll('#group')
+          console.log('group', group)
+          Sortable.create(group[group.length - 1] as HTMLElement, {
+            group: 'componentList'
+          })
+        })
+
+        const parentElement = dragged.parentNode
+        // 删除 DOM 元素
+        parentElement!.removeChild(dragged)
+      }
     }
   })
 

@@ -1,6 +1,13 @@
+<!--
+ * @Author: zhuotuo
+ * @Date: 2023-03-07 15:39:51
+ * @LastEditors: zhuotuo
+ * @LastEditTime: 2023-09-11 13:51:50
+ * @Description: 
+-->
 <template>
   <div>
-    <div class="row">
+    <!-- <div class="row">
       <div class="box">
         <h1>VueDraggable</h1>
         <VueDraggableBasic />
@@ -9,12 +16,12 @@
         <h1>Sortable</h1>
         <SortableBasic />
       </div>
-    </div>
+    </div> -->
     <div class="row">
-      <div class="box">
+      <!-- <div class="box">
         <h1>VueDraggable group</h1>
         <VueDraggableGroup />
-      </div>
+      </div> -->
       <div class="box">
         <h1>Sortable group</h1>
         <SortableGroup />
@@ -53,7 +60,8 @@ pre {
   margin-left: 50px;
 }
 
-.wrapper {
+.wrapper,
+#group {
   width: 150px;
   border: 1px solid #ccc;
   padding: 15px;
