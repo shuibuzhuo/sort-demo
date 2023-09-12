@@ -36,14 +36,41 @@
 <script setup lang="ts">
 import Sortable from 'sortablejs'
 import { computed, nextTick, onMounted, ref } from 'vue'
+import lodash from 'lodash'
 
 const list = ref([
-  { name: 'John', id: 1, key: 'special' },
+  { name: 'John', id: 1 },
   { name: 'Joao', id: 2 },
   { name: 'Jean', id: 3 },
   { name: 'Gerard', id: 4 }
 ])
 const preview = ref<any[]>([])
+
+/**
+ * 将数组中的某个元素进行移动
+ * @param arr 数组
+ * @param oldIndex 移动的元素的 oldIndex
+ * @param newIndex 移动的元素的 newIndex
+ * @returns
+ */
+function arrayMove(arr: any[], oldIndex: any, newIndex: any) {
+  console.log('arrayMove oldIndex', oldIndex)
+  console.log('arrayMove newIndex', newIndex)
+  const copy = lodash.cloneDeep(arr)
+
+  if (oldIndex === newIndex) {
+    // 如果 oldIndex 和 newIndex 相同，无需移动，直接返回原数组
+    return copy
+  }
+
+  // 获取要移动的元素
+  const movedElement = copy.splice(oldIndex, 1)[0]
+
+  // 在新位置插入移动的元素
+  copy.splice(newIndex, 0, movedElement)
+
+  return copy
+}
 
 function initSortable() {
   const listEl = document.getElementById('list')
@@ -53,28 +80,12 @@ function initSortable() {
     group: { name: 'componentList', pull: 'clone', put: false },
     sort: false,
     onEnd: function (e) {
-      console.log('e', e)
+      console.log('list e', e)
       if (e.from !== e.to) {
         const dragged = e.item
         const element = list.value[e.oldIndex!]
 
-        if (e.to.id === 'group') {
-          preview.value[e.newIndex!].children.push(element)
-        } else {
-          if (element.key === 'special') {
-            preview.value.splice(e.newIndex!, 0, { ...element, children: [] })
-          } else {
-            preview.value.splice(e.newIndex!, 0, element)
-          }
-        }
-
-        nextTick(() => {
-          const group = document.querySelectorAll('#group')
-          console.log('group', group)
-          Sortable.create(group[group.length - 1] as HTMLElement, {
-            group: 'componentList'
-          })
-        })
+        preview.value.splice(e.newIndex!, 0, element)
 
         const parentElement = dragged.parentNode
         // 删除 DOM 元素
@@ -84,7 +95,11 @@ function initSortable() {
   })
 
   Sortable.create(previewEl!, {
-    group: 'componentList'
+    group: 'componentList',
+    onEnd: function (e) {
+      console.log('preview e', e)
+      preview.value = arrayMove(preview.value, e.oldIndex!, e.newIndex!)
+    }
   })
 }
 
